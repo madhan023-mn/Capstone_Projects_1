@@ -6,7 +6,7 @@ import { getUserWorkspaceRole, canEditDocument } from '@/lib/permissions';
 
 const createDocSchema = z.object({
   title: z.string().min(1).default('Untitled Document'),
-  icon: z.string().default('📄'),
+  icon: z.string().default('file-text'),
 });
 
 export async function GET(

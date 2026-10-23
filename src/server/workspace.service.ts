@@ -55,7 +55,7 @@ export class WorkspaceService {
       const defaultDoc = await tx.document.create({
         data: {
           title: 'Getting Started',
-          icon: '✨',
+          icon: 'sparkles',
           workspaceId: workspace.id,
           createdById: userId,
         },

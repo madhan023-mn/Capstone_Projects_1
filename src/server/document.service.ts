@@ -8,7 +8,7 @@ export class DocumentService {
     const document = await prisma.document.create({
       data: {
         title: title || 'Untitled Document',
-        icon: icon || '📄',
+        icon: icon || 'file-text',
         workspaceId,
         createdById: userId,
       },

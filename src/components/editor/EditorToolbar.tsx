@@ -19,6 +19,7 @@ import {
   Undo,
   Redo,
   Highlighter,
+  Eye,
 } from 'lucide-react';
 
 interface EditorToolbarProps {
@@ -31,8 +32,9 @@ export default function EditorToolbar({ editor, isReadOnly }: EditorToolbarProps
 
   if (isReadOnly) {
     return (
-      <div className="flex items-center gap-2 px-4 py-2 border-b border-slate-200 bg-amber-50/80 text-amber-900 text-xs font-medium">
-        <span>👁️ You are in read-only mode for this document (Viewer / Commenter permissions).</span>
+      <div className="flex items-center gap-2 px-4 py-2 border-b border-amber-200 bg-amber-50/80 text-amber-900 text-xs font-medium">
+        <Eye className="w-4 h-4 text-amber-600 shrink-0" />
+        <span>You are in read-only mode for this document (Viewer / Commenter permissions).</span>
       </div>
     );
   }

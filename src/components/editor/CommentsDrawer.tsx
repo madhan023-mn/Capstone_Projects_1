@@ -212,7 +212,7 @@ export default function CommentsDrawer({
               className="text-amber-700 hover:text-amber-900 ml-2"
               title="Clear selection"
             >
-              ✕
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>

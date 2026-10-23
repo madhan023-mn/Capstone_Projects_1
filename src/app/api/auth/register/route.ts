@@ -52,8 +52,8 @@ export async function POST(req: NextRequest) {
         documents: {
           create: [
             {
-              title: 'Getting Started with Real-Time Collaboration 🚀',
-              icon: '🚀',
+              title: 'Getting Started with Real-Time Collaboration',
+              icon: 'rocket',
               createdById: user.id,
             },
           ],

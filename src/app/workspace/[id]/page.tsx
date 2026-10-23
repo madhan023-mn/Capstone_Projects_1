@@ -17,7 +17,10 @@ import {
   UserPlus,
   ChevronRight,
   Sparkles,
+  Folder,
+  X,
 } from 'lucide-react';
+import DocumentIcon from '@/components/common/DocumentIcon';
 
 interface WorkspaceData {
   id: string;
@@ -85,7 +88,7 @@ export default function WorkspacePage({ params }: { params: { id: string } }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: 'Untitled Document',
-          icon: '📄',
+          icon: 'file-text',
         }),
       });
 
@@ -224,7 +227,9 @@ export default function WorkspacePage({ params }: { params: { id: string } }) {
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div className="flex items-center gap-2">
-              <span className="text-xl">📂</span>
+              <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center">
+                <Folder className="w-4 h-4 text-indigo-600" />
+              </div>
               <span className="font-bold text-slate-900 text-base">{workspace.name}</span>
               <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 ml-1">
                 {userRole}
@@ -285,7 +290,9 @@ export default function WorkspacePage({ params }: { params: { id: string } }) {
                   className="p-4 rounded-xl bg-white border border-slate-200 hover:border-indigo-400 hover:shadow-xs transition flex items-center justify-between group shadow-2xs"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-xl group-hover:scale-110 transition">{doc.icon}</span>
+                    <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-center group-hover:border-indigo-300 group-hover:bg-indigo-50/40 transition shrink-0">
+                      <DocumentIcon icon={doc.icon} size="md" />
+                    </div>
                     <div>
                       <h4 className="font-semibold text-sm text-slate-900 group-hover:text-indigo-600 transition">
                         {doc.title}
@@ -359,9 +366,10 @@ export default function WorkspacePage({ params }: { params: { id: string } }) {
               </h3>
               <button
                 onClick={() => setShowMemberModal(false)}
-                className="text-slate-400 hover:text-slate-700 text-sm font-bold"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+                title="Close"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

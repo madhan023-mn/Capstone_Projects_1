@@ -13,6 +13,7 @@ import {
   Layers,
   ChevronLeft,
 } from 'lucide-react';
+import DocumentIcon from '@/components/common/DocumentIcon';
 
 interface SidebarDoc {
   id: string;
@@ -64,8 +65,8 @@ export default function Sidebar({
           href={`/workspace/${workspaceId}`}
           className="flex items-center gap-2 hover:bg-slate-200/60 p-1.5 rounded-lg transition flex-1 min-w-0"
         >
-          <div className="w-6 h-6 rounded-md bg-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-            📂
+          <div className="w-6 h-6 rounded-md bg-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-2xs">
+            <Folder className="w-3.5 h-3.5 text-white" />
           </div>
           <span className="font-semibold text-xs text-slate-800 truncate">
             {workspaceName}
@@ -126,7 +127,7 @@ export default function Sidebar({
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
               }`}
             >
-              <span className="text-sm select-none">{doc.icon}</span>
+              <DocumentIcon icon={doc.icon} className="w-3.5 h-3.5" />
               <span className="truncate flex-1 tracking-tight">{doc.title}</span>
             </Link>
           );

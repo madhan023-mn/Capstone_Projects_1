@@ -17,6 +17,7 @@ import EditorToolbar from './EditorToolbar';
 import CommentsDrawer from './CommentsDrawer';
 import VersionHistoryDrawer from './VersionHistoryDrawer';
 import Sidebar from './Sidebar';
+import IconPicker from '@/components/common/IconPicker';
 
 import {
   MessageSquare,
@@ -79,27 +80,32 @@ export default function CollaborativeEditor({
   const [historyOpen, setHistoryOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // Yjs & Provider references
-  const ydocRef = useRef<Y.Doc | null>(null);
-  const providerRef = useRef<WebsocketProvider | null>(null);
+  // Yjs & Provider state
+  const [ydoc, setYdoc] = useState<Y.Doc | null>(null);
+  const [provider, setProvider] = useState<WebsocketProvider | null>(null);
 
   const canEdit = ['OWNER', 'ADMIN', 'EDITOR'].includes(userRole);
   const canComment = ['OWNER', 'ADMIN', 'EDITOR', 'COMMENTER'].includes(userRole);
   const isReadOnly = !canEdit;
 
-  const userColor = getUserColor(currentUser.id);
+  const userColor = getUserColor(currentUser?.id || 'anon');
 
-  // Initialize or fetch Yjs & Provider
+  // Initialize Yjs & WebSocket Provider
   useEffect(() => {
     let isMounted = true;
-    const ydoc = new Y.Doc();
-    ydocRef.current = ydoc;
+    const ydocInstance = new Y.Doc();
+    setYdoc(ydocInstance);
+    let providerInstance: WebsocketProvider | null = null;
 
     async function initCollaboration() {
       try {
         // 1. Fetch token from server
         const res = await fetch(`/api/documents/${documentId}/token`);
-        if (!res.ok) throw new Error('Failed to get token');
+        if (!res.ok) {
+          console.warn('Could not retrieve doc token, running in local mode');
+          setConnectionStatus('disconnected');
+          return;
+        }
         const tokenData = await res.json();
 
         if (!isMounted) return;
@@ -107,22 +113,29 @@ export default function CollaborativeEditor({
         const wsUrl = tokenData.wsUrl || process.env.NEXT_PUBLIC_COLLAB_WS_URL || 'ws://localhost:1234';
 
         // 2. Connect via y-websocket with auth token
-        const provider = new WebsocketProvider(wsUrl, documentId, ydoc, {
+        providerInstance = new WebsocketProvider(wsUrl, documentId, ydocInstance, {
           params: { token: tokenData.token },
         });
-        providerRef.current = provider;
+
+        if (!isMounted) {
+          providerInstance.destroy();
+          return;
+        }
+
+        setProvider(providerInstance);
 
         // 3. Awareness setup (Cursors & Presence)
-        provider.awareness.setLocalStateField('user', {
-          name: currentUser.name,
+        providerInstance.awareness.setLocalStateField('user', {
+          name: currentUser?.name || 'Collaborator',
           color: userColor,
-          avatarUrl: currentUser.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(currentUser.name)}`,
+          avatarUrl: currentUser?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(currentUser?.name || 'User')}`,
           role: userRole,
         });
 
         // 4. Awareness change listener
         const updateCollaborators = () => {
-          const states = provider.awareness.getStates();
+          if (!providerInstance) return;
+          const states = providerInstance.awareness.getStates();
           const activeUsers: Collaborator[] = [];
 
           states.forEach((state: any, clientId: number) => {
@@ -140,22 +153,22 @@ export default function CollaborativeEditor({
           setCollaborators(activeUsers);
         };
 
-        provider.awareness.on('change', updateCollaborators);
+        providerInstance.awareness.on('change', updateCollaborators);
         updateCollaborators();
 
         // 5. Connection status
-        provider.on('status', (event: { status: 'connecting' | 'connected' | 'disconnected' }) => {
-          setConnectionStatus(event.status);
+        providerInstance.on('status', (event: { status: 'connecting' | 'connected' | 'disconnected' }) => {
+          if (isMounted) setConnectionStatus(event.status);
         });
 
-        provider.on('sync', (isSynced: boolean) => {
-          if (isSynced) {
+        providerInstance.on('sync', (isSynced: boolean) => {
+          if (isSynced && isMounted) {
             setConnectionStatus('connected');
           }
         });
       } catch (err) {
         console.error('Collab initialization error:', err);
-        setConnectionStatus('disconnected');
+        if (isMounted) setConnectionStatus('disconnected');
       }
     }
 
@@ -163,16 +176,18 @@ export default function CollaborativeEditor({
 
     return () => {
       isMounted = false;
-      if (providerRef.current) {
-        providerRef.current.destroy();
-        providerRef.current = null;
-      }
-      if (ydocRef.current) {
-        ydocRef.current.destroy();
-        ydocRef.current = null;
-      }
+      setTimeout(() => {
+        try {
+          if (providerInstance) {
+            providerInstance.destroy();
+          }
+          ydocInstance.destroy();
+        } catch (e) {
+          // teardown protection
+        }
+      }, 50);
     };
-  }, [documentId, currentUser, userColor, userRole]);
+  }, [documentId, currentUser?.id, currentUser?.name, userColor, userRole]);
 
   // TipTap Editor instance
   const editor = useEditor(
@@ -180,7 +195,7 @@ export default function CollaborativeEditor({
       editable: canEdit,
       extensions: [
         StarterKit.configure({
-          history: false, // Yjs manages undo/redo stack
+          history: ydoc ? false : undefined,
         }),
         Placeholder.configure({
           placeholder: "Type '/' for commands or start writing simultaneously...",
@@ -192,20 +207,20 @@ export default function CollaborativeEditor({
           nested: true,
         }),
         // Collaboration extension attached to the Yjs doc
-        ...(ydocRef.current
+        ...(ydoc
           ? [
               Collaboration.configure({
-                document: ydocRef.current,
+                document: ydoc,
               }),
             ]
           : []),
         // Collaboration Cursor extension
-        ...(providerRef.current
+        ...(provider
           ? [
               CollaborationCursor.configure({
-                provider: providerRef.current,
+                provider: provider,
                 user: {
-                  name: currentUser.name,
+                  name: currentUser?.name || 'Collaborator',
                   color: userColor,
                 },
               }),
@@ -213,16 +228,18 @@ export default function CollaborativeEditor({
           : []),
       ],
       onSelectionUpdate({ editor }) {
-        const { from, to } = editor.state.selection;
-        if (from !== to) {
-          const text = editor.state.doc.textBetween(from, to, ' ');
-          setSelectedText(text);
-        } else {
-          setSelectedText('');
-        }
+        try {
+          const { from, to } = editor.state.selection;
+          if (from !== to) {
+            const text = editor.state.doc.textBetween(from, to, ' ');
+            setSelectedText(text);
+          } else {
+            setSelectedText('');
+          }
+        } catch (e) {}
       },
     },
-    [ydocRef.current, providerRef.current, canEdit]
+    [ydoc, provider, canEdit]
   );
 
   // Sync title changes
@@ -264,7 +281,7 @@ export default function CollaborativeEditor({
       const res = await fetch(`/api/workspaces/${workspaceId}/documents`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'Untitled Document', icon: '📄' }),
+        body: JSON.stringify({ title: 'Untitled Document', icon: 'file-text' }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -412,22 +429,12 @@ export default function CollaborativeEditor({
           <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)] border border-slate-200/80 px-8 sm:px-14 py-12 min-h-[calc(100vh-8.5rem)] transition-all">
             {/* Document Title & Icon Header */}
             <div className="mb-8">
-              <div className="flex items-center gap-3 mb-4">
-                <span
-                  onClick={() => {
-                    if (canEdit) {
-                      const emojis = ['📄', '⚡', '🚀', '🎨', '📝', '💡', '🔥', '📊', '🌐'];
-                      const next = emojis[(emojis.indexOf(icon) + 1) % emojis.length];
-                      handleIconChange(next);
-                    }
-                  }}
-                  className={`text-4xl select-none p-1.5 rounded-xl hover:bg-slate-100 transition inline-block ${
-                    canEdit ? 'cursor-pointer hover:scale-110 active:scale-95' : ''
-                  }`}
-                  title={canEdit ? 'Click to change emoji' : ''}
-                >
-                  {icon}
-                </span>
+              <div className="mb-4">
+                <IconPicker
+                  currentIcon={icon}
+                  onSelect={handleIconChange}
+                  disabled={!canEdit}
+                />
               </div>
 
               <input

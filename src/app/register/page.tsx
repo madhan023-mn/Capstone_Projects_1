@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Lock, Mail, User, ArrowRight, AlertCircle } from 'lucide-react';
+import { Lock, Mail, User, ArrowRight, AlertCircle, Zap } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -50,8 +50,8 @@ export default function RegisterPage() {
         {/* Logo Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center font-black text-xl text-white shadow-sm shadow-indigo-500/20">
-              ⚡
+            <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-500/20">
+              <Zap className="w-5 h-5 text-white fill-white" />
             </div>
             <span className="font-bold text-2xl text-slate-900 tracking-tight">SyncSpace</span>
           </Link>

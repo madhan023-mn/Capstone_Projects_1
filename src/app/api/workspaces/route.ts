@@ -70,8 +70,8 @@ export async function POST(req: NextRequest) {
         documents: {
           create: [
             {
-              title: 'Welcome to your new workspace 🚀',
-              icon: '🚀',
+              title: 'Welcome to your new workspace',
+              icon: 'rocket',
               createdById: user.id,
             },
           ],

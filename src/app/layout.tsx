@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     'Notion and Figma inspired real-time collaborative workspace powered by Next.js, TipTap, Yjs CRDTs, PostgreSQL, and Redis.',
   icons: {
-    icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>',
+    icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%234f46e5%22><polygon points=%2213 2 3 14 12 14 11 22 21 10 12 10 13 2%22/></svg>',
   },
 };
 

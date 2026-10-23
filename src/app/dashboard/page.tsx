@@ -14,6 +14,7 @@ import {
   Clock,
   Layers,
   ChevronRight,
+  Zap,
 } from 'lucide-react';
 
 interface WorkspaceItem {
@@ -122,8 +123,8 @@ export default function DashboardPage() {
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm shadow-indigo-500/20">
-                ⚡
+              <div className="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-500/20">
+                <Zap className="w-5 h-5 text-white fill-white" />
               </div>
               <span className="font-bold text-lg tracking-tight text-slate-900">SyncSpace</span>
             </Link>
@@ -187,8 +188,8 @@ export default function DashboardPage() {
 
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-lg text-indigo-600 group-hover:scale-105 transition">
-                    📂
+                  <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 group-hover:scale-105 transition shadow-2xs">
+                    <Folder className="w-5 h-5 text-indigo-600" />
                   </div>
                   <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700">
                     {ws.role}
