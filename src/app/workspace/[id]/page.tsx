@@ -20,8 +20,10 @@ import {
   Folder,
   X,
   Home,
+  User as UserIcon,
 } from 'lucide-react';
 import DocumentIcon from '@/components/common/DocumentIcon';
+import ProfileModal from '@/components/common/ProfileModal';
 
 interface WorkspaceData {
   id: string;
@@ -56,6 +58,8 @@ export default function WorkspacePage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showMemberModal, setShowMemberModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<'ADMIN' | 'EDITOR' | 'COMMENTER' | 'VIEWER'>('EDITOR');
   const [inviting, setInviting] = useState(false);
@@ -83,6 +87,12 @@ export default function WorkspacePage({ params }: { params: { id: string } }) {
   useEffect(() => {
     async function loadWorkspace() {
       try {
+        const meRes = await fetch('/api/auth/me');
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          setCurrentUser(meData.user);
+        }
+
         const res = await fetch(`/api/workspaces/${params.id}`);
         if (!res.ok) {
           router.push('/dashboard');
@@ -294,6 +304,24 @@ export default function WorkspacePage({ params }: { params: { id: string } }) {
                 <span>{creatingDoc ? 'Creating...' : 'New Document'}</span>
               </button>
             )}
+
+            {currentUser && (
+              <button
+                type="button"
+                onClick={() => setShowProfileModal(true)}
+                className="flex items-center gap-2 p-1 -m-1 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+                title="View your profile"
+              >
+                <div className="relative">
+                  <img
+                    src={currentUser.avatarUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User'}
+                    alt={currentUser.name}
+                    className="w-8 h-8 rounded-full border border-slate-200 bg-slate-100 hover:ring-2 hover:ring-indigo-500/30 transition"
+                  />
+                  <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 border border-white" />
+                </div>
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -500,6 +528,13 @@ export default function WorkspacePage({ params }: { params: { id: string } }) {
           </div>
         </div>
       )}
+
+      {/* Profile Modal */}
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        user={currentUser ? { ...currentUser, role: userRole } : null}
+      />
     </div>
   );
 }

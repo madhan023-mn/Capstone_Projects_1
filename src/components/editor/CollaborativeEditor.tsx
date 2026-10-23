@@ -18,6 +18,7 @@ import CommentsDrawer from './CommentsDrawer';
 import VersionHistoryDrawer from './VersionHistoryDrawer';
 import Sidebar from './Sidebar';
 import IconPicker from '@/components/common/IconPicker';
+import ProfileModal from '@/components/common/ProfileModal';
 
 import {
   MessageSquare,
@@ -79,6 +80,7 @@ export default function CollaborativeEditor({
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   // Yjs & Provider state
   const [ydoc, setYdoc] = useState<Y.Doc | null>(null);
@@ -371,9 +373,14 @@ export default function CollaborativeEditor({
               )}
 
               {/* Role Badge */}
-              <span className="text-[10px] font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200/90 shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setShowProfileModal(true)}
+                className="text-[10px] font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 border border-slate-200/90 hover:border-indigo-200 shadow-2xs transition cursor-pointer"
+                title="View your profile"
+              >
                 {userRole}
-              </span>
+              </button>
             </div>
           </div>
 
@@ -381,26 +388,47 @@ export default function CollaborativeEditor({
           <div className="flex items-center gap-3">
             {/* Online Collaborators Avatars (Figma style) */}
             <div className="flex items-center -space-x-2 overflow-hidden py-1 px-1">
-              {collaborators.map((c) => (
-                <div
-                  key={c.clientId}
-                  className="relative group transition-transform hover:scale-115 hover:z-20 cursor-pointer"
-                  title={`${c.name} (${c.role || 'Collaborator'})`}
-                >
-                  <img
-                    src={c.avatarUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User'}
-                    alt={c.name}
-                    className="w-7 h-7 rounded-full border-2 bg-white shadow-xs ring-1 ring-slate-200/50"
-                    style={{ borderColor: c.color }}
-                  />
-                  {/* Tooltip on hover */}
-                  <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[11px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all pointer-events-none shadow-xl z-30">
-                    <span className="font-semibold">{c.name}</span>
-                    <span className="text-slate-400 ml-1.5 text-[10px]">({c.role})</span>
+              {collaborators.map((c) => {
+                const isMe = c.name === currentUser?.name;
+                return (
+                  <div
+                    key={c.clientId}
+                    onClick={() => {
+                      if (isMe) setShowProfileModal(true);
+                    }}
+                    className="relative group transition-transform hover:scale-115 hover:z-20 cursor-pointer"
+                    title={isMe ? `${c.name} (You) - Click to view profile` : `${c.name} (${c.role || 'Collaborator'})`}
+                  >
+                    <img
+                      src={c.avatarUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User'}
+                      alt={c.name}
+                      className="w-7 h-7 rounded-full border-2 bg-white shadow-xs ring-1 ring-slate-200/50"
+                      style={{ borderColor: c.color }}
+                    />
+                    {/* Tooltip on hover */}
+                    <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[11px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all pointer-events-none shadow-xl z-30">
+                      <span className="font-semibold">{c.name}</span>
+                      <span className="text-slate-400 ml-1.5 text-[10px]">{isMe ? '(You - View Profile)' : `(${c.role})`}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
+
+            {/* Current User Quick Profile Avatar Button */}
+            <button
+              type="button"
+              onClick={() => setShowProfileModal(true)}
+              className="relative p-0.5 rounded-full hover:ring-2 hover:ring-indigo-500/40 transition group cursor-pointer"
+              title="View your profile"
+            >
+              <img
+                src={currentUser?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(currentUser?.name || 'User')}`}
+                alt={currentUser?.name || 'My Profile'}
+                className="w-7 h-7 rounded-full border-2 border-indigo-600 bg-white shadow-xs object-cover"
+              />
+              <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 border border-white" />
+            </button>
 
             <div className="w-[1px] h-5 bg-slate-200" />
 
@@ -488,6 +516,19 @@ export default function CollaborativeEditor({
         onClose={() => setHistoryOpen(false)}
         canEdit={canEdit}
         onRestoreSuccess={handleRestoreReload}
+      />
+
+      {/* User Profile Modal */}
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        user={{
+          id: currentUser?.id || '',
+          name: currentUser?.name || 'User',
+          email: currentUser?.email || '',
+          avatarUrl: currentUser?.avatarUrl,
+          role: userRole,
+        }}
       />
     </div>
   );

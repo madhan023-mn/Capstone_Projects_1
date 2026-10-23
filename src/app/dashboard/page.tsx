@@ -18,6 +18,7 @@ import {
   Home,
   ArrowLeft,
 } from 'lucide-react';
+import ProfileModal from '@/components/common/ProfileModal';
 
 interface WorkspaceItem {
   id: string;
@@ -46,6 +47,7 @@ export default function DashboardPage() {
   const [newWorkspaceName, setNewWorkspaceName] = useState('');
   const [newWorkspaceDesc, setNewWorkspaceDesc] = useState('');
   const [creating, setCreating] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [recentDoc, setRecentDoc] = useState<{ documentId: string; workspaceId: string; title?: string } | null>(null);
 
   useEffect(() => {
@@ -177,17 +179,27 @@ export default function DashboardPage() {
               <span className="hidden sm:inline">Home</span>
             </Link>
             {user && (
-              <div className="flex items-center gap-3">
-                <img
-                  src={user.avatarUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User'}
-                  alt={user.name}
-                  className="w-8 h-8 rounded-full border border-slate-200 bg-slate-100"
-                />
+              <button
+                type="button"
+                onClick={() => setShowProfileModal(true)}
+                className="flex items-center gap-2.5 p-1 -m-1 rounded-xl hover:bg-slate-100 transition cursor-pointer text-left group"
+                title="View your profile"
+              >
+                <div className="relative">
+                  <img
+                    src={user.avatarUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User'}
+                    alt={user.name}
+                    className="w-8 h-8 rounded-full border border-slate-200 bg-slate-100 group-hover:ring-2 group-hover:ring-indigo-500/30 transition"
+                  />
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white" />
+                </div>
                 <div className="hidden sm:block text-left text-xs">
-                  <div className="font-semibold text-slate-900 leading-tight">{user.name}</div>
+                  <div className="font-semibold text-slate-900 leading-tight group-hover:text-indigo-600 transition">
+                    {user.name}
+                  </div>
                   <div className="text-slate-500 text-[11px] leading-tight">{user.email}</div>
                 </div>
-              </div>
+              </button>
             )}
             <button
               onClick={handleLogout}
@@ -334,6 +346,13 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* User Profile Modal */}
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        user={user}
+      />
     </div>
   );
 }
