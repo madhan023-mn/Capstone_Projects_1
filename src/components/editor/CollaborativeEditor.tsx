@@ -138,13 +138,20 @@ export default function CollaborativeEditor({
         const updateCollaborators = () => {
           if (!providerInstance) return;
           const states = providerInstance.awareness.getStates();
+          const seenNames = new Set<string>();
           const activeUsers: Collaborator[] = [];
 
           states.forEach((state: any, clientId: number) => {
-            if (state.user) {
+            if (state.user && state.user.name) {
+              const userName = state.user.name;
+              // Avoid duplicates and don't duplicate current user in collaborator avatars list
+              if (userName === currentUser?.name) return;
+              if (seenNames.has(userName)) return;
+              seenNames.add(userName);
+
               activeUsers.push({
                 clientId,
-                name: state.user.name || 'Anonymous',
+                name: userName,
                 color: state.user.color || '#3b82f6',
                 avatarUrl: state.user.avatarUrl,
                 role: state.user.role,
@@ -386,18 +393,14 @@ export default function CollaborativeEditor({
 
           {/* Right Header: Collaborators Avatars, Comments, History */}
           <div className="flex items-center gap-3">
-            {/* Online Collaborators Avatars (Figma style) */}
-            <div className="flex items-center -space-x-2 overflow-hidden py-1 px-1">
-              {collaborators.map((c) => {
-                const isMe = c.name === currentUser?.name;
-                return (
+            {/* Online Other Collaborators Avatars (Figma style) */}
+            {collaborators.length > 0 && (
+              <div className="flex items-center -space-x-2 overflow-hidden py-1 px-1">
+                {collaborators.map((c) => (
                   <div
                     key={c.clientId}
-                    onClick={() => {
-                      if (isMe) setShowProfileModal(true);
-                    }}
                     className="relative group transition-transform hover:scale-115 hover:z-20 cursor-pointer"
-                    title={isMe ? `${c.name} (You) - Click to view profile` : `${c.name} (${c.role || 'Collaborator'})`}
+                    title={`${c.name} (${c.role || 'Collaborator'})`}
                   >
                     <img
                       src={c.avatarUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User'}
@@ -408,14 +411,14 @@ export default function CollaborativeEditor({
                     {/* Tooltip on hover */}
                     <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[11px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all pointer-events-none shadow-xl z-30">
                       <span className="font-semibold">{c.name}</span>
-                      <span className="text-slate-400 ml-1.5 text-[10px]">{isMe ? '(You - View Profile)' : `(${c.role})`}</span>
+                      <span className="text-slate-400 ml-1.5 text-[10px]">({c.role})</span>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            )}
 
-            {/* Current User Quick Profile Avatar Button */}
+            {/* Current User Single Profile Avatar Button */}
             <button
               type="button"
               onClick={() => setShowProfileModal(true)}
