@@ -242,6 +242,22 @@ export default function CollaborativeEditor({
     [ydoc, provider, canEdit]
   );
 
+  // Save last active document for easy return navigation
+  useEffect(() => {
+    if (documentId && workspaceId) {
+      try {
+        localStorage.setItem(
+          'syncspace_recent_doc',
+          JSON.stringify({
+            documentId,
+            workspaceId,
+            title: title || initialTitle || 'Document',
+          })
+        );
+      } catch (e) {}
+    }
+  }, [documentId, workspaceId, title, initialTitle]);
+
   // Sync title changes
   const titleDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const handleTitleChange = (newTitle: string) => {

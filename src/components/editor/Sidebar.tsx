@@ -92,14 +92,14 @@ export default function Sidebar({
           <span>Home</span>
         </Link>
         <Link
-          href="/dashboard"
+          href={`/dashboard?fromDoc=${currentDocId}&fromWs=${workspaceId}`}
           className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 transition font-medium"
         >
           <LayoutDashboard className="w-3.5 h-3.5 text-slate-500" />
           <span>All Workspaces</span>
         </Link>
         <Link
-          href={`/workspace/${workspaceId}`}
+          href={`/workspace/${workspaceId}?fromDoc=${currentDocId}`}
           className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 transition font-medium"
         >
           <Settings className="w-3.5 h-3.5 text-slate-500" />

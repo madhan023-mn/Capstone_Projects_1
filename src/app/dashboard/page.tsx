@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Zap,
   Home,
+  ArrowLeft,
 } from 'lucide-react';
 
 interface WorkspaceItem {
@@ -45,6 +46,30 @@ export default function DashboardPage() {
   const [newWorkspaceName, setNewWorkspaceName] = useState('');
   const [newWorkspaceDesc, setNewWorkspaceDesc] = useState('');
   const [creating, setCreating] = useState(false);
+  const [recentDoc, setRecentDoc] = useState<{ documentId: string; workspaceId: string; title?: string } | null>(null);
+
+  useEffect(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromDocId = urlParams.get('fromDoc');
+      const fromWsId = urlParams.get('fromWs');
+
+      if (fromDocId && fromWsId) {
+        setRecentDoc({
+          documentId: fromDocId,
+          workspaceId: fromWsId,
+        });
+      } else {
+        const stored = localStorage.getItem('syncspace_recent_doc');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.documentId && parsed.workspaceId) {
+            setRecentDoc(parsed);
+          }
+        }
+      }
+    } catch (e) {}
+  }, []);
 
   useEffect(() => {
     async function loadData() {
@@ -132,6 +157,17 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            {recentDoc && (
+              <Link
+                href={`/workspace/${recentDoc.workspaceId}/doc/${recentDoc.documentId}`}
+                className="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg border border-indigo-200 transition flex items-center gap-1.5 font-semibold shadow-2xs group"
+                title={recentDoc.title ? `Back to: ${recentDoc.title}` : 'Back to Active Document'}
+              >
+                <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition" />
+                <span className="hidden sm:inline">Back to Document</span>
+                <span className="sm:hidden">Document</span>
+              </Link>
+            )}
             <Link
               href="/"
               className="text-xs text-slate-600 hover:text-indigo-600 px-2.5 py-1.5 rounded-lg border border-slate-200/90 hover:bg-slate-50 transition flex items-center gap-1.5 font-medium shadow-2xs"
@@ -177,12 +213,24 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 shadow-xs transition"
-          >
-            <Plus className="w-4 h-4" /> Create Workspace
-          </button>
+          <div className="flex items-center gap-3">
+            {recentDoc && (
+              <Link
+                href={`/workspace/${recentDoc.workspaceId}/doc/${recentDoc.documentId}`}
+                className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 hover:text-indigo-600 px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 shadow-2xs transition group"
+                title="Return to the active document editor"
+              >
+                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition" />
+                <span>Back to Document</span>
+              </Link>
+            )}
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 shadow-xs transition"
+            >
+              <Plus className="w-4 h-4" /> Create Workspace
+            </button>
+          </div>
         </div>
 
         {/* Workspaces Grid */}

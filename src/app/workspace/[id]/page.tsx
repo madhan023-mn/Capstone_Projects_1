@@ -60,6 +60,25 @@ export default function WorkspacePage({ params }: { params: { id: string } }) {
   const [inviteRole, setInviteRole] = useState<'ADMIN' | 'EDITOR' | 'COMMENTER' | 'VIEWER'>('EDITOR');
   const [inviting, setInviting] = useState(false);
   const [creatingDoc, setCreatingDoc] = useState(false);
+  const [returnDoc, setReturnDoc] = useState<{ id: string; title?: string } | null>(null);
+
+  useEffect(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromDocId = urlParams.get('fromDoc');
+      if (fromDocId) {
+        setReturnDoc({ id: fromDocId });
+      } else {
+        const stored = localStorage.getItem('syncspace_recent_doc');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.workspaceId === params.id && parsed.documentId) {
+            setReturnDoc({ id: parsed.documentId, title: parsed.title });
+          }
+        }
+      }
+    } catch (e) {}
+  }, [params.id]);
 
   useEffect(() => {
     async function loadWorkspace() {
@@ -246,6 +265,17 @@ export default function WorkspacePage({ params }: { params: { id: string } }) {
           </div>
 
           <div className="flex items-center gap-3">
+            {(returnDoc?.id || (workspace.documents.length > 0 && workspace.documents[0].id)) && (
+              <Link
+                href={`/workspace/${workspace.id}/doc/${returnDoc?.id || workspace.documents[0].id}`}
+                className="text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs transition group"
+                title="Back to Document Editor"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition" />
+                <span>Back to Document</span>
+              </Link>
+            )}
+
             <button
               onClick={() => setShowMemberModal(true)}
               className="text-xs bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition font-medium shadow-2xs"
