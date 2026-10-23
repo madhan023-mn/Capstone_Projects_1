@@ -13,6 +13,7 @@
     "db:verify": "node scripts/verify-db.js",
     "dev:all": "concurrently -n \"NEXT,COLLAB\" -c \"blue,green\" \"npm run dev\" \"npm run collab\"",
     "prisma:generate": "prisma generate",
+    "postinstall": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "node prisma/seed.js",
