@@ -15,6 +15,7 @@ import {
   Layers,
   ChevronRight,
   Zap,
+  Home,
 } from 'lucide-react';
 
 interface WorkspaceItem {
@@ -130,7 +131,15 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="text-xs text-slate-600 hover:text-indigo-600 px-2.5 py-1.5 rounded-lg border border-slate-200/90 hover:bg-slate-50 transition flex items-center gap-1.5 font-medium shadow-2xs"
+              title="Return to Home Landing Page"
+            >
+              <Home className="w-3.5 h-3.5 text-slate-500" />
+              <span className="hidden sm:inline">Home</span>
+            </Link>
             {user && (
               <div className="flex items-center gap-3">
                 <img

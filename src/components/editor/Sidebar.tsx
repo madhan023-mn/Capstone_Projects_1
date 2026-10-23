@@ -12,6 +12,7 @@ import {
   Folder,
   Layers,
   ChevronLeft,
+  Home,
 } from 'lucide-react';
 import DocumentIcon from '@/components/common/DocumentIcon';
 
@@ -83,6 +84,13 @@ export default function Sidebar({
 
       {/* Navigation Quick Links */}
       <div className="px-3 pt-3 space-y-1 text-xs">
+        <Link
+          href="/"
+          className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 transition font-medium"
+        >
+          <Home className="w-3.5 h-3.5 text-slate-500" />
+          <span>Home</span>
+        </Link>
         <Link
           href="/dashboard"
           className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 transition font-medium"

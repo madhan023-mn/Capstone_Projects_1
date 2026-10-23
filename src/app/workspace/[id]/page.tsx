@@ -19,6 +19,7 @@ import {
   Sparkles,
   Folder,
   X,
+  Home,
 } from 'lucide-react';
 import DocumentIcon from '@/components/common/DocumentIcon';
 
@@ -218,7 +219,14 @@ export default function WorkspacePage({ params }: { params: { id: string } }) {
       {/* Top Bar */}
       <header className="border-b border-slate-200/80 bg-white/90 backdrop-blur sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition"
+              title="Return to Home"
+            >
+              <Home className="w-5 h-5" />
+            </Link>
             <Link
               href="/dashboard"
               className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition"
