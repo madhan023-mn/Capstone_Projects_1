@@ -90,7 +90,7 @@ cp .env.example .env
 ```
 Ensure your `DATABASE_URL` is set to PostgreSQL:
 ```env
-DATABASE_URL="postgresql://postgres:postgrespassword@localhost:5432/collaborative_workspace?schema=public"
+DATABASE_URL="url"
 ```
 
 ### 3. Start PostgreSQL Database
