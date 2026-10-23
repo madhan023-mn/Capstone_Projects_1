@@ -1,0 +1,194 @@
+// Prisma Schema for PostgreSQL Production & Docker Deployments
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String            @id @default(cuid())
+  email        String            @unique
+  passwordHash String
+  name         String
+  avatarUrl    String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  memberships  WorkspaceMember[]
+  ownedWorkspaces Workspace[]    @relation("WorkspaceOwner")
+  documents    Document[]        @relation("CreatedDocuments")
+  comments     Comment[]
+  replies      CommentReply[]
+  versions     DocumentVersion[]
+  activities   ActivityLog[]
+  sessions     Session[]
+
+  @@index([email])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+}
+
+model Workspace {
+  id          String            @id @default(cuid())
+  name        String
+  slug        String            @unique
+  description String?
+  ownerId     String
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  owner       User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     WorkspaceMember[]
+  documents   Document[]
+  invitations Invitation[]
+  activities  ActivityLog[]
+
+  @@index([ownerId])
+  @@index([slug])
+}
+
+model WorkspaceMember {
+  id          String    @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        String    @default("EDITOR") // OWNER, ADMIN, EDITOR, COMMENTER, VIEWER
+  joinedAt    DateTime  @default(now())
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([workspaceId])
+  @@index([userId])
+}
+
+model Document {
+  id          String            @id @default(cuid())
+  title       String            @default("Untitled Document")
+  icon        String?           @default("📄")
+  workspaceId String
+  createdById String
+  isArchived  Boolean           @default(false)
+  yjsState    Bytes?            // Compact merged binary CRDT state
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  workspace   Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creator     User              @relation("CreatedDocuments", fields: [createdById], references: [id], onDelete: Cascade)
+  updates     DocumentUpdate[]
+  versions    DocumentVersion[]
+  comments    Comment[]
+
+  @@index([workspaceId])
+  @@index([createdById])
+}
+
+model DocumentUpdate {
+  id         String   @id @default(cuid())
+  documentId String
+  update     Bytes    // Incremental Yjs binary update chunk
+  createdAt  DateTime @default(now())
+
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([createdAt])
+}
+
+model DocumentVersion {
+  id            String   @id @default(cuid())
+  documentId    String
+  versionNumber Int
+  label         String?
+  snapshot      Bytes    // Full Yjs binary snapshot at version creation
+  createdById   String
+  createdAt     DateTime @default(now())
+
+  document      Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  creator       User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, versionNumber])
+  @@index([documentId])
+}
+
+model Comment {
+  id         String         @id @default(cuid())
+  documentId String
+  authorId   String
+  content    String
+  targetText String?
+  isResolved Boolean        @default(false)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  document   Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  author     User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  replies    CommentReply[]
+
+  @@index([documentId])
+  @@index([authorId])
+}
+
+model CommentReply {
+  id        String   @id @default(cuid())
+  commentId String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([commentId])
+  @@index([authorId])
+}
+
+model Invitation {
+  id          String   @id @default(cuid())
+  workspaceId String
+  email       String
+  role        String   @default("EDITOR")
+  token       String   @unique
+  expiresAt   DateTime
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([email])
+  @@index([token])
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  action      String
+  entityType  String
+  entityId    String
+  metadata    String?
+  createdAt   DateTime @default(now())
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([userId])
+  @@index([createdAt])
+}
